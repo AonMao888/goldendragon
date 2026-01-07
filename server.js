@@ -202,6 +202,41 @@ app.post('/api/update/car', async (req, res) => {
         })
     }
 })
+//finish car service
+app.post('/api/finish/car', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            await db.collection('cars').doc(recv.id).update({
+                status:'finish'
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Car service was updated to finish.',
+                    data: []
+                })
+            }).catch(error => {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong while updating car status!',
+                    data: []
+                })
+            })
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to update car status!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
 //add delete car
 app.post('/api/delete/car', async (req, res) => {
     let recv = req.body;
