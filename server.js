@@ -114,11 +114,35 @@ app.get('/api/cars', async (req, res) => {
         })
     }
 })
+//get all today cars
+app.get('/api/today/cars', async (req, res) => {
+    const today = new Date().toISOString().split('T')[0];
+    let got = await db.collection('cars').where('dateOnly', '==', today).get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    } else {
+        let d = got.docs.map((doc) => ({
+            id: doc.id,
+            adddate: getdate(doc.data().time),
+            ...doc.data()
+        }))
+        res.json({
+            status: 'success',
+            text: 'All today cars data got.',
+            data: d
+        })
+    }
+})
 //add new car
 app.post('/api/add/car', async (req, res) => {
     let recv = req.body;
     if (recv) {
         try {
+            const today = new Date().toISOString().split('T')[0];
             await db.collection('cars').add({
                 cusname: recv.cusname,
                 cusphone: recv.cusphone,
@@ -130,6 +154,7 @@ app.post('/api/add/car', async (req, res) => {
                 fee:recv.fee,
                 reserve:recv.reserve,
                 status:'pending',
+                dateOnly: today,
                 time: admin.firestore.FieldValue.serverTimestamp(),
             }).then(() => {
                 res.json({
