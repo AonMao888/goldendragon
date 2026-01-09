@@ -375,19 +375,6 @@ app.post('/api/delete/service', async (req, res) => {
                     data: []
                 })
             }
-            .then(() => {
-                res.json({
-                    status: 'success',
-                    text: 'Car data was deleted.',
-                    data: []
-                })
-            }).catch(error => {
-                res.json({
-                    status: 'fail',
-                    text: 'Something went wrong while deleting car data!',
-                    data: []
-                })
-            })
         } catch (e) {
             res.json({
                 status: 'fail',
