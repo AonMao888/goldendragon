@@ -89,7 +89,7 @@ function getdate(e) {
     return formattedDate;
 }
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send('Home');
 })
 //get all cars
@@ -143,18 +143,69 @@ app.post('/api/add/car', async (req, res) => {
     if (recv) {
         try {
             const today = new Date().toISOString().split('T')[0];
-            await db.collection('cars').add({
+            let forid = recv.carplate + recv.carname;
+            await db.collection('cars').doc(forid).set({
                 cusname: recv.cusname,
                 cusphone: recv.cusphone,
                 cusadr: recv.cusaddr,
                 carname: recv.carname,
-                carplate:recv.carplate,
-                vin:recv.vin,
-                aboutcar:recv.aboutcar,
-                fee:recv.fee,
-                reserve:recv.reserve,
-                status:'pending',
+                carplate: recv.carplate,
+                vin: recv.vin,
+                status: 'pending',
                 dateOnly: today,
+                services: {
+                    about: recv.aboutcar,
+                    fee: recv.fee,
+                    reserve: recv.reserve,
+                },
+                time: admin.firestore.FieldValue.serverTimestamp(),
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'New car was added.',
+                    data: []
+                })
+            }).catch(error => {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong while adding new car!',
+                    data: []
+                })
+            })
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to add new car!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
+//add more service
+app.post('/api/more/service', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            await db.collection('cars').doc(recv.id).set({
+                cusname: recv.cusname,
+                cusphone: recv.cusphone,
+                cusadr: recv.cusaddr,
+                carname: recv.carname,
+                carplate: recv.carplate,
+                vin: recv.vin,
+                status: 'pending',
+                dateOnly: today,
+                services: {
+                    about: recv.aboutcar,
+                    fee: recv.fee,
+                    reserve: recv.reserve,
+                },
                 time: admin.firestore.FieldValue.serverTimestamp(),
             }).then(() => {
                 res.json({
@@ -194,11 +245,11 @@ app.post('/api/update/car', async (req, res) => {
                 cusphone: recv.cusphone,
                 cusadr: recv.cusaddr,
                 carname: recv.carname,
-                carplate:recv.carplate,
-                vin:recv.vin,
-                aboutcar:recv.aboutcar,
-                fee:recv.fee,
-                reserve:recv.reserve,
+                carplate: recv.carplate,
+                vin: recv.vin,
+                aboutcar: recv.aboutcar,
+                fee: recv.fee,
+                reserve: recv.reserve,
             }).then(() => {
                 res.json({
                     status: 'success',
@@ -233,7 +284,7 @@ app.post('/api/finish/car', async (req, res) => {
     if (recv) {
         try {
             await db.collection('cars').doc(recv.id).update({
-                status:'finish'
+                status: 'finish'
             }).then(() => {
                 res.json({
                     status: 'success',
@@ -262,7 +313,7 @@ app.post('/api/finish/car', async (req, res) => {
         })
     }
 })
-//add delete car
+//delete car
 app.post('/api/delete/car', async (req, res) => {
     let recv = req.body;
     if (recv) {
@@ -296,6 +347,6 @@ app.post('/api/delete/car', async (req, res) => {
     }
 })
 
-app.listen(80,()=>{
+app.listen(80, () => {
     console.log('server started with port 80');
 })
