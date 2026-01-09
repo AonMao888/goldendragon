@@ -172,14 +172,17 @@ app.post('/api/add/car', async (req, res) => {
                     status: 'fail',
                     text: 'Something went wrong while adding new car!',
                     data: []
-                })
+                });
+                console.log(error);
+                
             })
         } catch (e) {
             res.json({
                 status: 'fail',
                 text: 'Something went wrong to add new car!',
                 data: []
-            })
+            });
+            console.log(e);
         }
     } else {
         res.json({
@@ -212,14 +215,16 @@ app.post('/api/more/service', async (req, res) => {
                     status: 'fail',
                     text: 'Something went wrong while adding new car!',
                     data: []
-                })
+                });
+                console.log(error);
             })
         } catch (e) {
             res.json({
                 status: 'fail',
                 text: 'Something went wrong to add new car!',
                 data: []
-            })
+            });
+            console.log(e);
         }
     } else {
         res.json({
