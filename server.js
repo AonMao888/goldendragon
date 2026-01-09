@@ -206,7 +206,6 @@ app.post('/api/more/service', async (req, res) => {
                     about: recv.about,
                     fee: recv.fee,
                     reserve: recv.reserve,
-                    date: admin.firestore.FieldValue.serverTimestamp()
                 }),
             }).then(() => {
                 res.json({
