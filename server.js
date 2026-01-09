@@ -140,7 +140,7 @@ app.get('/api/today/cars', async (req, res) => {
 //add new car
 app.post('/api/add/car', async (req, res) => {
     let recv = req.body;
-    
+
     if (!recv || !recv.carplate || !recv.carname) {
         return res.json({ status: 'fail', text: 'Missing required data!', data: [] });
     }
@@ -206,7 +206,7 @@ app.post('/api/more/service', async (req, res) => {
                     about: recv.about,
                     fee: recv.fee,
                     reserve: recv.reserve,
-                    status:'pending'
+                    status: 'pending'
                 }),
             }).then(() => {
                 res.json({
@@ -286,21 +286,36 @@ app.post('/api/finish/car', async (req, res) => {
     let recv = req.body;
     if (recv) {
         try {
-            await db.collection('cars').doc(recv.id).update({
-                status: 'finish'
-            }).then(() => {
-                res.json({
-                    status: 'success',
-                    text: 'Car service was updated to finish.',
-                    data: []
-                })
-            }).catch(error => {
+            let docref = db.collection('cars').doc(recv.id);
+            let doc = await docref.get();
+            if (doc.exists) {
+                let services = doc.data().services;
+                if (services && services.length > 0) {
+                    services[recv.index] = {
+                        ...services[recv.index],
+                        status: 'finish'
+                    };
+                    await docref.update({ services: services }).then(() => {
+                        res.json({
+                            status: 'success',
+                            text: 'Car service was updated to finish.',
+                            data: []
+                        })
+                    }).catch(error => {
+                        res.json({
+                            status: 'fail',
+                            text: 'Something went wrong while updating car status!',
+                            data: []
+                        })
+                    });
+                }
+            } else {
                 res.json({
                     status: 'fail',
-                    text: 'Something went wrong while updating car status!',
+                    text: 'No document found with this ID!',
                     data: []
                 })
-            })
+            }
         } catch (e) {
             res.json({
                 status: 'fail',
