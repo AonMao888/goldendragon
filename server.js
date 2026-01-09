@@ -250,9 +250,6 @@ app.post('/api/update/car', async (req, res) => {
                 carname: recv.carname,
                 carplate: recv.carplate,
                 vin: recv.vin,
-                aboutcar: recv.aboutcar,
-                fee: recv.fee,
-                reserve: recv.reserve,
             }).then(() => {
                 res.json({
                     status: 'success',
