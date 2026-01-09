@@ -153,13 +153,13 @@ app.post('/api/add/car', async (req, res) => {
                 vin: recv.vin,
                 status: 'pending',
                 dateOnly: today,
-                services: [{
+                services: admin.firestore.FieldValue.arrayUnion({
                     about: recv.aboutcar,
                     fee: recv.fee,
                     reserve: recv.reserve,
-                    status:'pending',
-                    time: admin.firestore.FieldValue.serverTimestamp(),
-                }],
+                    status: 'pending',
+                    date: admin.firestore.FieldValue.serverTimestamp(),
+                }),
                 time: admin.firestore.FieldValue.serverTimestamp(),
             }).then(() => {
                 res.json({
@@ -196,10 +196,10 @@ app.post('/api/more/service', async (req, res) => {
         try {
             await db.collection('cars').doc(recv.id).update({
                 services: admin.firestore.FieldValue.arrayUnion({
-                    about:recv.about,
-                    fee:recv.fee,
-                    reserve:recv.reserve,
-                    date:admin.firestore.FieldValue.serverTimestamp()
+                    about: recv.about,
+                    fee: recv.fee,
+                    reserve: recv.reserve,
+                    date: admin.firestore.FieldValue.serverTimestamp()
                 }),
             }).then(() => {
                 res.json({
