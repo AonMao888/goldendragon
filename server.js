@@ -192,23 +192,13 @@ app.post('/api/more/service', async (req, res) => {
     let recv = req.body;
     if (recv) {
         try {
-            await db.collection('cars').doc(recv.id).set({
-                cusname: recv.cusname,
-                cusphone: recv.cusphone,
-                cusadr: recv.cusaddr,
-                carname: recv.carname,
-                carplate: recv.carplate,
-                vin: recv.vin,
-                status: 'pending',
-                dateOnly: today,
-                services: [
-                    {
-                        about: recv.aboutcar,
-                        fee: recv.fee,
-                        reserve: recv.reserve,
-                    }
-                ],
-                time: admin.firestore.FieldValue.serverTimestamp(),
+            await db.collection('cars').doc(recv.id).update({
+                services: admin.firestore.FieldValue.arrayUnion({
+                    about:recv.about,
+                    fee:recv.fee,
+                    reserve:recv.reserve,
+                    date:admin.firestore.FieldValue.serverTimestamp()
+                }),
             }).then(() => {
                 res.json({
                     status: 'success',
