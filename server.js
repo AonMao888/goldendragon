@@ -206,6 +206,7 @@ app.post('/api/more/service', async (req, res) => {
                     about: recv.about,
                     fee: recv.fee,
                     reserve: recv.reserve,
+                    status:'pending'
                 }),
             }).then(() => {
                 res.json({
