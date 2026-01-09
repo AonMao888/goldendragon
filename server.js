@@ -282,7 +282,7 @@ app.post('/api/update/car', async (req, res) => {
     }
 })
 //finish car service
-app.post('/api/finish/car', async (req, res) => {
+app.post('/api/finish/service', async (req, res) => {
     let recv = req.body;
     if (recv) {
         try {
