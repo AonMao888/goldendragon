@@ -140,11 +140,30 @@ app.get('/api/today/cars', async (req, res) => {
 //add new car
 app.post('/api/add/car', async (req, res) => {
     let recv = req.body;
-    if (recv) {
-        try {
-            const today = new Date().toISOString().split('T')[0];
-            let forid = recv.carplate + recv.carname;
-            await db.collection('cars').doc(forid).set({
+    
+    if (!recv || !recv.carplate || !recv.carname) {
+        return res.json({ status: 'fail', text: 'Missing required data!', data: [] });
+    }
+
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        let forid = recv.carplate + recv.carname;
+        const docRef = db.collection('cars').doc(forid);
+
+        // Document ရှိမရှိ အရင်စစ်ပါတယ်
+        const doc = await docRef.get();
+
+        const serviceData = {
+            about: recv.aboutcar,
+            fee: recv.fee,
+            reserve: recv.reserve,
+            status: 'pending',
+            date: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (!doc.exists) {
+            // Document အသစ်ဆိုရင် အကုန်လုံးကို set လုပ်မယ်
+            await docRef.set({
                 cusname: recv.cusname,
                 cusphone: recv.cusphone,
                 cusadr: recv.cusaddr,
@@ -153,45 +172,31 @@ app.post('/api/add/car', async (req, res) => {
                 vin: recv.vin,
                 status: 'pending',
                 dateOnly: today,
-                services: admin.firestore.FieldValue.arrayUnion({
-                    about: recv.aboutcar,
-                    fee: recv.fee,
-                    reserve: recv.reserve,
-                    status: 'pending',
-                    date: admin.firestore.FieldValue.serverTimestamp(),
-                }),
+                services: [serviceData], // Array အသစ်အနေနဲ့ ထည့်မယ်
                 time: admin.firestore.FieldValue.serverTimestamp(),
-            }).then(() => {
-                res.json({
-                    status: 'success',
-                    text: 'New car was added.',
-                    data: []
-                })
-            }).catch(error => {
-                res.json({
-                    status: 'fail',
-                    text: 'Something went wrong while adding new car!',
-                    data: []
-                });
-                console.log(error);
-                
-            })
-        } catch (e) {
-            res.json({
-                status: 'fail',
-                text: 'Something went wrong to add new car!',
-                data: []
             });
-            console.log(e);
+        } else {
+            // Document ရှိပြီးသားဆိုရင် array ထဲကိုပဲ push လုပ်မယ်
+            await docRef.update({
+                services: admin.firestore.FieldValue.arrayUnion(serviceData)
+            });
         }
-    } else {
+
+        res.json({
+            status: 'success',
+            text: 'New car/service was added.',
+            data: []
+        });
+
+    } catch (e) {
+        console.error(e);
         res.json({
             status: 'fail',
-            text: 'Something went wrong!',
+            text: 'Internal Server Error',
             data: []
-        })
+        });
     }
-})
+});
 //add more service
 app.post('/api/more/service', async (req, res) => {
     let recv = req.body;
