@@ -158,7 +158,6 @@ app.post('/api/add/car', async (req, res) => {
             fee: recv.fee,
             reserve: recv.reserve,
             status: 'pending',
-            date: admin.firestore.FieldValue.serverTimestamp(),
         };
 
         if (!doc.exists) {
