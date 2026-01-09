@@ -308,6 +308,12 @@ app.post('/api/finish/car', async (req, res) => {
                             data: []
                         })
                     });
+                } else {
+                    res.json({
+                        status: 'fail',
+                        text: 'No service to set finish!',
+                        data: []
+                    })
                 }
             } else {
                 res.json({
@@ -320,6 +326,72 @@ app.post('/api/finish/car', async (req, res) => {
             res.json({
                 status: 'fail',
                 text: 'Something went wrong to update car status!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
+//delete car
+app.post('/api/delete/service', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            let docref = db.collection('cars').doc(recv.id);
+            let doc = await docref.get();
+            if (doc.exists) {
+                let services = doc.data().services;
+                if (services && services.length > 1) {
+                    services.splice(recv.index, 1);
+                    await docref.update({ services: services }).then(() => {
+                        res.json({
+                            status: 'success',
+                            text: 'Car service was deleted.',
+                            data: []
+                        })
+                    }).catch(error => {
+                        res.json({
+                            status: 'fail',
+                            text: 'Something went wrong while deleting car service!',
+                            data: []
+                        })
+                    });
+                } else {
+                    res.json({
+                        status: 'fail',
+                        text: 'No service to delete!',
+                        data: []
+                    })
+                }
+            } else {
+                res.json({
+                    status: 'fail',
+                    text: 'No document found with this ID!',
+                    data: []
+                })
+            }
+            .then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Car data was deleted.',
+                    data: []
+                })
+            }).catch(error => {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong while deleting car data!',
+                    data: []
+                })
+            })
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to delete car data!',
                 data: []
             })
         }
