@@ -153,11 +153,13 @@ app.post('/api/add/car', async (req, res) => {
                 vin: recv.vin,
                 status: 'pending',
                 dateOnly: today,
-                services: {
+                services: [{
                     about: recv.aboutcar,
                     fee: recv.fee,
                     reserve: recv.reserve,
-                },
+                    status:'pending',
+                    time: admin.firestore.FieldValue.serverTimestamp(),
+                }],
                 time: admin.firestore.FieldValue.serverTimestamp(),
             }).then(() => {
                 res.json({
