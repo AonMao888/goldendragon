@@ -162,7 +162,6 @@ app.post('/api/add/car', async (req, res) => {
                 carname: recv.carname,
                 carplate: recv.carplate,
                 vin: recv.vin,
-                status: 'pending',
                 dateOnly: today,
                 services: [serviceData],
                 time: admin.firestore.FieldValue.serverTimestamp(),
@@ -324,7 +323,63 @@ app.post('/api/finish/service', async (req, res) => {
         })
     }
 })
-//delete car
+//update reserve
+app.post('/api/update/service/reserve', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            let docref = db.collection('cars').doc(recv.id);
+            let doc = await docref.get();
+            if (doc.exists) {
+                let services = doc.data().services;
+                if (services && services.length > 0) {
+                    services[recv.index] = {
+                        ...services[recv.index],
+                        reserve: recv.reserve
+                    };
+                    await docref.update({ services: services }).then(() => {
+                        res.json({
+                            status: 'success',
+                            text: 'Car service reserve was updated.',
+                            data: []
+                        })
+                    }).catch(error => {
+                        res.json({
+                            status: 'fail',
+                            text: 'Something went wrong while updating car reserve!',
+                            data: []
+                        })
+                    });
+                } else {
+                    res.json({
+                        status: 'fail',
+                        text: 'No service to update!',
+                        data: []
+                    })
+                }
+            } else {
+                res.json({
+                    status: 'fail',
+                    text: 'No document found with this ID!',
+                    data: []
+                })
+            }
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to update car reserve!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
+//delete car service
 app.post('/api/delete/service', async (req, res) => {
     let recv = req.body;
     if (recv) {
