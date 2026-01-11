@@ -161,6 +161,7 @@ app.post('/api/add/car', async (req, res) => {
                 cusadr: recv.cusaddr,
                 carname: recv.carname,
                 carplate: recv.carplate,
+                chargeperson: recv.chargeperson,
                 vin: recv.vin,
                 dateOnly: today,
                 services: [serviceData],
@@ -227,7 +228,7 @@ app.post('/api/more/service', async (req, res) => {
         })
     }
 })
-//add new car
+//update car
 app.post('/api/update/car', async (req, res) => {
     let recv = req.body;
     if (recv) {
@@ -238,6 +239,7 @@ app.post('/api/update/car', async (req, res) => {
                 cusadr: recv.cusaddr,
                 carname: recv.carname,
                 carplate: recv.carplate,
+                chargeperson: recv.chargeperson,
                 vin: recv.vin,
             }).then(() => {
                 res.json({
@@ -454,6 +456,78 @@ app.post('/api/delete/car', async (req, res) => {
             res.json({
                 status: 'fail',
                 text: 'Something went wrong to delete car data!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
+
+//add new product
+app.post('/api/add/product', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('products');
+        await docRef.add({
+            name: recv.name,
+            brand: recv.brand,
+            cate: recv.cate,
+            size: recv.size,
+            quantity: recv.quantity,
+            price: recv.price,
+            note: recv.note,
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }).then(() => {
+            res.json({
+                status: 'success',
+                text: 'New product was added.',
+                data: []
+            });
+        });
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+//update product
+app.post('/api/update/product', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            await db.collection('products').doc(recv.id).update({
+                name: recv.name,
+                brand: recv.brand,
+                cate: recv.cate,
+                size: recv.size,
+                quantity: recv.quantity,
+                price: recv.price,
+                note: recv.note,
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Product data was updated.',
+                    data: []
+                })
+            }).catch(error => {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong while updating product data!',
+                    data: []
+                })
+            })
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to update product data!',
                 data: []
             })
         }
