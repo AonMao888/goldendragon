@@ -468,6 +468,28 @@ app.post('/api/delete/car', async (req, res) => {
     }
 })
 
+//get all products
+app.get('/api/products', async (req, res) => {
+    let got = await db.collection('products').get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    } else {
+        let d = got.docs.map((doc) => ({
+            id: doc.id,
+            adddate: getdate(doc.data().time),
+            ...doc.data()
+        }))
+        res.json({
+            status: 'success',
+            text: 'All products data got.',
+            data: d
+        })
+    }
+})
 //add new product
 app.post('/api/add/product', async (req, res) => {
     let recv = req.body;
