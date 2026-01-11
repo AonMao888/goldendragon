@@ -561,6 +561,39 @@ app.post('/api/update/product', async (req, res) => {
         })
     }
 })
+//delete product
+app.post('/api/delete/product', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            await db.collection('products').doc(recv.id).delete().then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Product was deleted.',
+                    data: []
+                })
+            }).catch(error => {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong while deleting product!',
+                    data: []
+                })
+            })
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to delete product!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
 
 app.listen(80, () => {
     console.log('server started with port 80');
