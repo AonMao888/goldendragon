@@ -164,7 +164,7 @@ app.post('/api/add/car', async (req, res) => {
                 chargeperson: recv.chargeperson,
                 vin: recv.vin,
                 dateOnly: today,
-                aboutcar:recv.aboutcar,
+                aboutcar: recv.aboutcar,
                 services: [serviceData],
                 time: admin.firestore.FieldValue.serverTimestamp(),
             });
@@ -242,7 +242,7 @@ app.post('/api/update/car', async (req, res) => {
                 carplate: recv.carplate,
                 chargeperson: recv.chargeperson,
                 vin: recv.vin,
-                aboutcar:recv.aboutcar
+                aboutcar: recv.aboutcar
             }).then(() => {
                 res.json({
                     status: 'success',
@@ -277,7 +277,7 @@ app.post('/api/update/aboutcar', async (req, res) => {
     if (recv) {
         try {
             await db.collection('cars').doc(recv.id).update({
-                aboutcar:recv.aboutcar
+                aboutcar: recv.aboutcar
             }).then(() => {
                 res.json({
                     status: 'success',
@@ -620,6 +620,68 @@ app.post('/api/delete/product', async (req, res) => {
             res.json({
                 status: 'fail',
                 text: 'Something went wrong to delete product!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
+
+//sell product and decrease product quantity
+async function decreaseStock(cart) {
+    try {
+        await db.runTransaction(async (t) => {
+            const updatePromises = cart.map(async (item) => {
+                const itemRef = db.collection('products').doc(item.id);
+                const doc = await t.get(itemRef);
+                if (!doc.exists) {
+                    throw new Error(`Product ${item.id} does not exist!`);
+                }
+                const currentStock = doc.data().quantity;
+                if (currentStock < item.quantity) {
+                    throw new Error(`Insufficient stock for ${item.id}. Available: ${currentStock}`);
+                }
+                const newQuantity = currentStock - item.quantity;
+                t.update(itemRef, { quantity: newQuantity });
+            });
+            await Promise.all(updatePromises);
+        });
+
+        console.log('Stock updated successfully!');
+        return { success: true };
+    } catch (error) {
+        console.error('Transaction failed: ', error.message);
+        return { success: false, error: error.message };
+    }
+}
+app.post('/api/sell/product', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            let sta = await decreaseStock(recv.products);
+            if (sta.success) {
+                res.json({
+                    status: 'success',
+                    text: 'Successfully sell.',
+                    data: []
+                })
+            } else {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong to update sell product data!',
+                    data: []
+                })
+            }
+        } catch (e) {
+            console.log(e);
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to update sell product data!',
                 data: []
             })
         }
