@@ -149,7 +149,7 @@ app.post('/api/add/car', async (req, res) => {
         const docRef = db.collection('cars').doc(forid);
         const doc = await docRef.get();
         const serviceData = {
-            about: recv.aboutcar,
+            about: recv.aboutfee,
             fee: recv.fee,
             reserve: recv.reserve,
             status: 'pending',
@@ -164,6 +164,7 @@ app.post('/api/add/car', async (req, res) => {
                 chargeperson: recv.chargeperson,
                 vin: recv.vin,
                 dateOnly: today,
+                aboutcar:recv.aboutcar,
                 services: [serviceData],
                 time: admin.firestore.FieldValue.serverTimestamp(),
             });
@@ -241,6 +242,7 @@ app.post('/api/update/car', async (req, res) => {
                 carplate: recv.carplate,
                 chargeperson: recv.chargeperson,
                 vin: recv.vin,
+                aboutcar:recv.aboutcar
             }).then(() => {
                 res.json({
                     status: 'success',
@@ -258,6 +260,41 @@ app.post('/api/update/car', async (req, res) => {
             res.json({
                 status: 'fail',
                 text: 'Something went wrong to update car data!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    }
+})
+//update about car
+app.post('/api/update/aboutcar', async (req, res) => {
+    let recv = req.body;
+    if (recv) {
+        try {
+            await db.collection('cars').doc(recv.id).update({
+                aboutcar:recv.aboutcar
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'About car was updated.',
+                    data: []
+                })
+            }).catch(error => {
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong while updating about car!',
+                    data: []
+                })
+            })
+        } catch (e) {
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to update about car!',
                 data: []
             })
         }
