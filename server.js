@@ -646,12 +646,11 @@ async function decreaseStock(cart) {
                 if (currentStock < item.quantity) {
                     throw new Error(`Insufficient stock for ${item.id}. Available: ${currentStock}`);
                 }
-                const newQuantity = currentStock - item.quantity;
+                const newQuantity = parseInt(currentStock) - parseInt(item.quantity);
                 t.update(itemRef, { quantity: newQuantity });
             });
             await Promise.all(updatePromises);
         });
-
         console.log('Stock updated successfully!');
         return { success: true };
     } catch (error) {
