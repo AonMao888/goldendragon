@@ -698,6 +698,29 @@ app.post('/api/sell/product', async (req, res) => {
     }
 })
 
+//get all history
+app.get('/api/history', async (req, res) => {
+    let got = await db.collection('history').get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    } else {
+        let d = got.docs.map((doc) => ({
+            id: doc.id,
+            adddate: getdate(doc.data().time),
+            ...doc.data()
+        }))
+        res.json({
+            status: 'success',
+            text: 'All history data got.',
+            data: d
+        })
+    }
+})
+
 app.listen(80, () => {
     console.log('server started with port 80');
 })
