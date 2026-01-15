@@ -665,10 +665,15 @@ app.post('/api/sell/product', async (req, res) => {
         try {
             let sta = await decreaseStock(recv.products);
             if (sta.success) {
-                res.json({
-                    status: 'success',
-                    text: 'Successfully sell.',
-                    data: []
+                await db.collection('history').add({
+                    products: recv.products,
+                    time: admin.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    res.json({
+                        status: 'success',
+                        text: 'Successfully sell.',
+                        data: []
+                    })
                 })
             } else {
                 res.json({
