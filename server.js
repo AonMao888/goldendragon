@@ -721,6 +721,461 @@ app.get('/api/history', async (req, res) => {
     }
 })
 
+//---------------------- For Web App -----------------------------
+//check is admin or not
+app.get('/checkadmin', async (req, res) => {
+    let { email } = req.query;
+    if (email) {
+        let got = await db.collection('admin').where('email', '==', email).get();
+        if (!got.empty) {
+            let da = got.docs[0].data();
+            res.json({
+                status: 'success',
+                text: 'Admin account found.',
+                data: da
+            })
+        } else {
+            res.json({
+                status: 'fail',
+                text: 'No admin account found with this email!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Query was required!',
+            data: []
+        })
+    }
+})
+//check is employee or not
+app.get('/checkemployee', async (req, res) => {
+    let { email } = req.query;
+    if (email) {
+        let got = await db.collection('employee').where('email', '==', email).get();
+        if (!got.empty) {
+            let da = got.docs[0].data();
+            res.json({
+                status: 'success',
+                text: 'Employee account found.',
+                data: da
+            })
+        } else {
+            res.json({
+                status: 'fail',
+                text: 'No employee account found with this email!',
+                data: []
+            })
+        }
+    } else {
+        res.json({
+            status: 'fail',
+            text: 'Query was required!',
+            data: []
+        })
+    }
+})
+//add new employee
+app.post('/api/add/employee', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('employee');
+        await docRef.add({
+            name: recv.name,
+            email: recv.email,
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }).then(() => {
+            res.json({
+                status: 'success',
+                text: 'New employee was added.',
+                data: []
+            });
+        });
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+//delete employee
+app.post('/api/delete/employee', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('employee').doc(recv.id);
+        await docRef.delete().then(() => {
+            res.json({
+                status: 'success',
+                text: 'Employee was deleted.',
+                data: []
+            });
+        }).catch(e => {
+            console.log(e);
+            res.json({
+                status: 'fail',
+                text: 'Something went wrong to delete employee!',
+                data: []
+            });
+        });
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+//get all employee
+app.get('/api/all/employee', async (req, res) => {
+    let got = await db.collection('employee').get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    } else {
+        let d = got.docs.map((doc) => ({
+            id: doc.id,
+            addtime: getdate(doc.data().time),
+            ...doc.data()
+        }))
+        res.json({
+            status: 'success',
+            text: 'All employee data got.',
+            data: d
+        })
+    }
+})
+//add new service
+app.post('/api/add/service', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('service');
+        await docRef.add({
+            carname: recv.carname,
+            carplate: recv.carplate,
+            fee: recv.fee,
+            aboutcar: recv.aboutcar,
+            product: recv.product,
+            customer: recv.customer,
+            employee: recv.employee,
+            employeeEmail: recv.employeeEmail,
+            status: 'Pending',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }).then(() => {
+            res.json({
+                status: 'success',
+                text: 'New service was added.',
+                data: []
+            });
+        });
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+//get all service
+app.get('/api/all/service', async (req, res) => {
+    let got = await db.collection('service').get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        })
+    } else {
+        let d = got.docs.map((doc) => ({
+            id: doc.id,
+            addtime: getdate(doc.data().time),
+            ...doc.data()
+        }))
+        res.json({
+            status: 'success',
+            text: 'All service data got.',
+            data: d
+        })
+    }
+})
+//get my service
+app.get('/api/my/service', async (req, res) => {
+    let { email } = req.query;
+    let got = await db.collection('service').where('employeeEmail', 'array-contains', email).get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'No service right now!',
+            data: []
+        })
+    } else {
+        let d = got.docs.map((doc) => ({
+            id: doc.id,
+            addtime: getdate(doc.data().time),
+            ...doc.data()
+        }))
+        res.json({
+            status: 'success',
+            text: 'All my service data got.',
+            data: d
+        })
+    }
+})
+//delete service
+app.post('/api/delete/car/service', async (req, res) => {
+    let recv = req.body;
+    try {
+        let gadmin = await db.collection('admin').where('email', '==', recv.requester).get();
+        if (gadmin.empty) {
+            res.json({
+                status: 'fail',
+                text: 'No permission to continue!',
+                data: []
+            });
+        } else {
+            const docRef = db.collection('service').doc(recv.id);
+            await docRef.delete().then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Service was deleted.',
+                    data: []
+                });
+            }).catch(e => {
+                console.log(e);
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong to delete service!',
+                    data: []
+                });
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        });
+    }
+});
+//delete service by employee
+app.post('/api/employee/delete/car/service', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('service').doc(recv.id);
+        let dd = await docRef.get();
+        if (!dd.exists) {
+            res.json({
+                status: 'fail',
+                text: 'No service found!',
+                data: []
+            });
+        } else {
+            let da = dd.data();
+            let ch = da.employeeEmail.find(item => item === recv.requester);
+            if (ch) {
+                await docRef.delete().then(() => {
+                    res.json({
+                        status: 'success',
+                        text: 'Service was deleted.',
+                        data: []
+                    });
+                }).catch(e => {
+                    console.log(e);
+                    res.json({
+                        status: 'fail',
+                        text: 'Something went wrong to delete service!',
+                        data: []
+                    });
+                });
+            } else {
+                res.json({
+                    status: 'fail',
+                    text: 'No permission to continue!',
+                    data: []
+                });
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Something went wrong!',
+            data: []
+        });
+    }
+});
+//add finish service
+app.post('/api/finish/car/service', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('service').doc(recv.id);
+        let g = await docRef.get();
+        if (g.exists) {
+            let da = g.data();
+            let checkacc = da.employeeEmail.find((item) => item === recv.requester);
+            if (checkacc) {
+                docRef.update({
+                    status: 'Finished'
+                }).then(() => {
+                    res.json({
+                        status: 'success',
+                        text: 'Set this service into finished successfully.',
+                        data: []
+                    });
+                }).catch((e) => {
+                    console.log(e);
+                    res.json({
+                        status: 'fail',
+                        text: 'Something went wrong to set status!',
+                        data: []
+                    });
+                })
+            } else {
+                res.json({
+                    status: 'fail',
+                    text: 'No permission to set this service finish!',
+                    data: []
+                });
+            }
+        } else {
+            res.json({
+                status: 'fail',
+                text: 'No document found with this ID!',
+                data: []
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+//get specific service
+app.get('/api/service/:id', async (req, res) => {
+    let { id } = req.params;
+    let got = await db.collection('service').doc(id).get();
+    if (!got.exists) {
+        res.json({
+            status: 'fail',
+            text: 'No service with this ID!',
+            data: []
+        })
+    } else {
+        res.json({
+            status: 'success',
+            text: 'Service data was got.',
+            data: {
+                ...got.data(),
+                id: got.id,
+                addtime: getdate(got.data().time),
+            }
+        })
+    }
+})
+//update service info
+app.post('/api/update/car/service', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('service').doc(recv.id);
+        await docRef.update({
+            carname: recv.carname,
+            carplate: recv.carplate,
+            fee: recv.fee,
+            aboutcar: recv.aboutcar,
+            product: recv.product,
+            customer: recv.customer,
+        }).then(() => {
+            res.json({
+                status: 'success',
+                text: 'Service data was updated.',
+                data: []
+            });
+        });
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+
+//change employee name
+app.post('/api/change/my/name', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('employee').where('email','==',recv.requester);
+        let go = await docRef.get();
+        if (!go.empty) {
+            let da = go.docs[0].data();
+            if (da.email === recv.requester) {
+                await db.collection('employee').doc(go.docs[0].id).update({
+                    name: recv.name,
+                }).then(() => {
+                    res.json({
+                        status: 'success',
+                        text: 'Name was successfully changed.',
+                        data: []
+                    });
+                });
+            } else {
+                res.json({
+                    status: 'fail',
+                    text: 'No permission to change name!',
+                    data: []
+                });
+            }
+        } else {
+            res.json({
+                status: 'fail',
+                text: 'No employee found!',
+                data: []
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
+//get specific service
+app.get('/api/my/:email', async (req, res) => {
+    let { email } = req.params;
+    let got = await db.collection('employee').where('email','==',email).get();
+    if (got.empty) {
+        res.json({
+            status: 'fail',
+            text: 'No employee with this email!',
+            data: []
+        })
+    } else {
+        res.json({
+            status: 'success',
+            text: 'Employee data was got.',
+            data: {
+                ...got.docs[0].data(),
+                id: got.id,
+                addtime: getdate(got.docs[0].data().time),
+            }
+        })
+    }
+})
+
 app.listen(80, () => {
     console.log('server started with port 80');
 })
