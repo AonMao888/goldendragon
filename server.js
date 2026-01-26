@@ -860,6 +860,8 @@ app.post('/api/add/service', async (req, res) => {
             carname: recv.carname,
             carplate: recv.carplate,
             fee: recv.fee,
+            source: recv.source,
+            profit: recv.profit,
             aboutcar: recv.aboutcar,
             product: recv.product,
             customer: recv.customer,
@@ -1088,20 +1090,39 @@ app.post('/api/update/car/service', async (req, res) => {
     let recv = req.body;
     try {
         const docRef = db.collection('service').doc(recv.id);
-        await docRef.update({
-            carname: recv.carname,
-            carplate: recv.carplate,
-            fee: recv.fee,
-            aboutcar: recv.aboutcar,
-            product: recv.product,
-            customer: recv.customer,
-        }).then(() => {
-            res.json({
-                status: 'success',
-                text: 'Service data was updated.',
-                data: []
+        if (recv.profit) {
+            await docRef.update({
+                carname: recv.carname,
+                carplate: recv.carplate,
+                fee: recv.fee,
+                source: recv.source,
+                profit: recv.profit,
+                aboutcar: recv.aboutcar,
+                product: recv.product,
+                customer: recv.customer,
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Service data was updated.',
+                    data: []
+                });
             });
-        });
+        } else {
+            await docRef.update({
+                carname: recv.carname,
+                carplate: recv.carplate,
+                fee: recv.fee,
+                aboutcar: recv.aboutcar,
+                product: recv.product,
+                customer: recv.customer,
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Service data was updated.',
+                    data: []
+                });
+            });
+        }
     } catch (e) {
         console.error(e);
         res.json({
@@ -1116,7 +1137,7 @@ app.post('/api/update/car/service', async (req, res) => {
 app.post('/api/change/my/name', async (req, res) => {
     let recv = req.body;
     try {
-        const docRef = db.collection('employee').where('email','==',recv.requester);
+        const docRef = db.collection('employee').where('email', '==', recv.requester);
         let go = await docRef.get();
         if (!go.empty) {
             let da = go.docs[0].data();
@@ -1156,7 +1177,7 @@ app.post('/api/change/my/name', async (req, res) => {
 //get specific service
 app.get('/api/my/:email', async (req, res) => {
     let { email } = req.params;
-    let got = await db.collection('employee').where('email','==',email).get();
+    let got = await db.collection('employee').where('email', '==', email).get();
     if (got.empty) {
         res.json({
             status: 'fail',
