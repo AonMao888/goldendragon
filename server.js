@@ -868,7 +868,8 @@ app.post('/api/add/service', async (req, res) => {
             employee: recv.employee,
             employeeEmail: recv.employeeEmail,
             status: 'Pending',
-            time: admin.firestore.FieldValue.serverTimestamp(),
+            time:recv.time,
+            servertime: admin.firestore.FieldValue.serverTimestamp(),
         }).then(() => {
             res.json({
                 status: 'success',
@@ -897,7 +898,6 @@ app.get('/api/all/service', async (req, res) => {
     } else {
         let d = got.docs.map((doc) => ({
             id: doc.id,
-            addtime: getdate(doc.data().time),
             ...doc.data()
         }))
         res.json({
@@ -920,7 +920,6 @@ app.get('/api/my/service', async (req, res) => {
     } else {
         let d = got.docs.map((doc) => ({
             id: doc.id,
-            addtime: getdate(doc.data().time),
             ...doc.data()
         }))
         res.json({
@@ -1080,7 +1079,6 @@ app.get('/api/service/:id', async (req, res) => {
             data: {
                 ...got.data(),
                 id: got.id,
-                addtime: getdate(got.data().time),
             }
         })
     }
@@ -1100,6 +1098,7 @@ app.post('/api/update/car/service', async (req, res) => {
                 aboutcar: recv.aboutcar,
                 product: recv.product,
                 customer: recv.customer,
+                time: recv.time,
             }).then(() => {
                 res.json({
                     status: 'success',
@@ -1174,7 +1173,7 @@ app.post('/api/change/my/name', async (req, res) => {
         });
     }
 });
-//get specific service
+//get specific employee
 app.get('/api/my/:email', async (req, res) => {
     let { email } = req.params;
     let got = await db.collection('employee').where('email', '==', email).get();
