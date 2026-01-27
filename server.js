@@ -868,7 +868,7 @@ app.post('/api/add/service', async (req, res) => {
             employee: recv.employee,
             employeeEmail: recv.employeeEmail,
             status: 'Pending',
-            time:recv.time,
+            time: recv.time,
             servertime: admin.firestore.FieldValue.serverTimestamp(),
         }).then(() => {
             res.json({
@@ -1202,32 +1202,22 @@ app.post('/api/paid/car/service', async (req, res) => {
         const docRef = db.collection('service').doc(recv.id);
         let g = await docRef.get();
         if (g.exists) {
-            let da = g.data();
-            let checkacc = da.employeeEmail.find((item) => item === recv.requester);
-            if (checkacc) {
-                docRef.update({
-                    paid: 'yes'
-                }).then(() => {
-                    res.json({
-                        status: 'success',
-                        text: 'Set this service into paid successfully.',
-                        data: []
-                    });
-                }).catch((e) => {
-                    console.log(e);
-                    res.json({
-                        status: 'fail',
-                        text: 'Something went wrong to set status!',
-                        data: []
-                    });
-                })
-            } else {
+            docRef.update({
+                paid: 'yes'
+            }).then(() => {
                 res.json({
-                    status: 'fail',
-                    text: 'No permission to set this service paid!',
+                    status: 'success',
+                    text: 'Set this service into paid successfully.',
                     data: []
                 });
-            }
+            }).catch((e) => {
+                console.log(e);
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong to set status!',
+                    data: []
+                });
+            })
         } else {
             res.json({
                 status: 'fail',
