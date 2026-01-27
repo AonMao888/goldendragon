@@ -1234,6 +1234,45 @@ app.post('/api/paid/car/service', async (req, res) => {
         });
     }
 });
+//unset paid service
+app.post('/api/unpaid/car/service', async (req, res) => {
+    let recv = req.body;
+    try {
+        const docRef = db.collection('service').doc(recv.id);
+        let g = await docRef.get();
+        if (g.exists) {
+            docRef.update({
+                paid: 'no'
+            }).then(() => {
+                res.json({
+                    status: 'success',
+                    text: 'Set this service into unpaid successfully.',
+                    data: []
+                });
+            }).catch((e) => {
+                console.log(e);
+                res.json({
+                    status: 'fail',
+                    text: 'Something went wrong to set status!',
+                    data: []
+                });
+            })
+        } else {
+            res.json({
+                status: 'fail',
+                text: 'No document found with this ID!',
+                data: []
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.json({
+            status: 'fail',
+            text: 'Internal Server Error',
+            data: []
+        });
+    }
+});
 
 app.listen(80, () => {
     console.log('server started with port 80');
